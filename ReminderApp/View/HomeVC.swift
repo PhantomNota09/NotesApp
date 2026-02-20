@@ -9,9 +9,25 @@ import UIKit
 
 class HomeVC: UIViewController {
 
-    var notes: [Note] = []
+    // MARK: - Properties
+    
+    private let viewModel: NoteViewModelProtocol
     var tableView : UITableView?
+    
+    // MARK: - Initialization
+    
+    /// Initializes HomeVC with dependency injection
+    init(viewModel: NoteViewModelProtocol) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -32,22 +48,31 @@ class HomeVC: UIViewController {
         if let tableView = tableView {
             view.addSubview(tableView)
         }
+        
+        // Set up view model callback to reload table when notes change
+        viewModel.onNotesUpdated = { [weak self] in
+            self?.tableView?.reloadData()
+        }
     }
 }
 
 extension HomeVC : UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return notes.count
+        return viewModel.numberOfNotes()
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil) //  style parameter determines the built-in layout of the cell
         
-        cell.textLabel?.text = notes[indexPath.row].title
+        guard let note = viewModel.note(at: indexPath.row) else {
+            return cell
+        }
+        
+        cell.textLabel?.text = note.title
         cell.textLabel?.font = .systemFont(ofSize: 20, weight: .bold)
         cell.textLabel?.textColor = .systemBlue
         
-        cell.detailTextLabel?.text = notes[indexPath.row].body
+        cell.detailTextLabel?.text = note.body
         cell.detailTextLabel?.font = .systemFont(ofSize: 14, weight: .regular)
         cell.detailTextLabel?.textColor = .lightGray
         cell.detailTextLabel?.numberOfLines = 2
@@ -96,17 +121,12 @@ extension HomeVC : UITableViewDelegate {
         
         // Closure to load the note
         detailVC.loadNote = { [weak self] index in
-            return self?.notes[index]
+            return self?.viewModel.note(at: index)
         }
         
         // Closure to save the note
         detailVC.saveNote = { [weak self] note, index in
-            if let index = index {
-                self?.notes[index] = note // updates the existing note
-            } else {
-                self?.notes.append(note) // adds new note
-            }
-            
+            self?.viewModel.saveNote(note, at: index)
             self?.tableView?.reloadData()
         }
         
@@ -126,17 +146,11 @@ extension HomeVC : UITableViewDelegate {
 
 extension HomeVC {
     @objc func addNote() {
-        let detailVC = NoteDetailVC() // strong reference
+        let detailVC = NoteDetailVC()
                 
         // Closure to save the note
         detailVC.saveNote = { note, index in
-            if let index = index {
-                self.notes[index] = note  // ← 'self' refers to HomeVC
-                                          // The closure captures HomeVC STRONGLY!
-            } else {
-                self.notes.append(note)
-            }
-            
+            self.viewModel.saveNote(note, at: index)
             self.tableView?.reloadData()
         }
         

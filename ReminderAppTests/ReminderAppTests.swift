@@ -9,28 +9,150 @@ import XCTest
 @testable import ReminderApp
 
 final class ReminderAppTests: XCTestCase {
+    
+    var viewModel: NoteViewModel!
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        viewModel = NoteViewModel()
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    
+    // MARK: - Test numberOfNotes
+    
+    func testNumberOfNotes_WhenEmpty_ReturnsZero() throws {
+        // Given: ViewModel with no notes
+        
+        // When
+        let count = viewModel.numberOfNotes()
+        
+        // Then
+        XCTAssertEqual(count, 0, "Expected 0 notes in empty view model")
     }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    
+    func testNumberOfNotes_AfterAddingNotes_ReturnsCorrectCount() throws {
+        // Given
+        let note1 = Note(title: "Note 1", body: "Body 1")
+        let note2 = Note(title: "Note 2", body: "Body 2")
+        
+        // When
+        viewModel.addNote(note1)
+        viewModel.addNote(note2)
+        
+        // Then
+        XCTAssertEqual(viewModel.numberOfNotes(), 2, "Expected 2 notes after adding two notes")
+    }
+    
+    // MARK: - Test addNote
+    
+    func testAddNote_AddsNoteSuccessfully() throws {
+        // Given
+        let note = Note(title: "Test Note", body: "Test Body")
+        
+        // When
+        viewModel.addNote(note)
+        
+        // Then
+        XCTAssertEqual(viewModel.numberOfNotes(), 1)
+        XCTAssertEqual(viewModel.note(at: 0)?.title, "Test Note")
+        XCTAssertEqual(viewModel.note(at: 0)?.body, "Test Body")
+    }
+    
+    func testAddNote_TriggersCallback() throws {
+        // Given
+        let note = Note(title: "Test Note", body: "Test Body")
+        let expectation = expectation(description: "onNotesUpdated callback should be called")
+        
+        viewModel.onNotesUpdated = {
+            expectation.fulfill()
         }
+        
+        // When
+        viewModel.addNote(note)
+        
+        // Then
+        waitForExpectations(timeout: 1.0)
     }
-
+    
+    // MARK: - Test updateNote
+    
+    func testUpdateNote_WithValidIndex_UpdatesNote() throws {
+        // Given
+        let originalNote = Note(title: "Original", body: "Original Body")
+        viewModel.addNote(originalNote)
+        
+        let updatedNote = Note(title: "Updated", body: "Updated Body")
+        
+        // When
+        viewModel.updateNote(updatedNote, at: 0)
+        
+        // Then
+        XCTAssertEqual(viewModel.numberOfNotes(), 1, "Should still have only 1 note")
+        XCTAssertEqual(viewModel.note(at: 0)?.title, "Updated")
+        XCTAssertEqual(viewModel.note(at: 0)?.body, "Updated Body")
+    }
+    
+    func testUpdateNote_WithInvalidIndex_DoesNothing() throws {
+        // Given
+        let originalNote = Note(title: "Original", body: "Original Body")
+        viewModel.addNote(originalNote)
+        
+        let updatedNote = Note(title: "Updated", body: "Updated Body")
+        
+        // When
+        viewModel.updateNote(updatedNote, at: 5)
+        
+        // Then
+        XCTAssertEqual(viewModel.numberOfNotes(), 1, "Should still have only 1 note")
+        XCTAssertEqual(viewModel.note(at: 0)?.title, "Original", "Original note should be unchanged")
+    }
+    
+    func testUpdateNote_TriggersCallback() throws {
+        // Given
+        let originalNote = Note(title: "Original", body: "Original Body")
+        viewModel.addNote(originalNote)
+        
+        let updatedNote = Note(title: "Updated", body: "Updated Body")
+        let expectation = expectation(description: "onNotesUpdated callback should be called")
+        
+        viewModel.onNotesUpdated = {
+            expectation.fulfill()
+        }
+        
+        // When
+        viewModel.updateNote(updatedNote, at: 0)
+        
+        // Then
+        waitForExpectations(timeout: 1.0)
+    }
+    
+    // MARK: - Test saveNote
+    
+    func testSaveNote_WithNilIndex_AddsNewNote() throws {
+        // Given
+        let note = Note(title: "New Note", body: "New Body")
+        
+        // When
+        viewModel.saveNote(note, at: nil)
+        
+        // Then
+        XCTAssertEqual(viewModel.numberOfNotes(), 1)
+        XCTAssertEqual(viewModel.note(at: 0)?.title, "New Note")
+    }
+    
+    func testSaveNote_WithValidIndex_UpdatesExistingNote() throws {
+        // Given
+        let originalNote = Note(title: "Original", body: "Original Body")
+        viewModel.addNote(originalNote)
+        
+        let updatedNote = Note(title: "Updated", body: "Updated Body")
+        
+        // When
+        viewModel.saveNote(updatedNote, at: 0)
+        
+        // Then
+        XCTAssertEqual(viewModel.numberOfNotes(), 1)
+        XCTAssertEqual(viewModel.note(at: 0)?.title, "Updated")
+    }
 }
