@@ -49,10 +49,7 @@ class HomeVC: UIViewController {
             view.addSubview(tableView)
         }
         
-        // Set up view model callback to reload table when notes change
-        viewModel.onNotesUpdated = { [weak self] in
-            self?.tableView?.reloadData()
-        }
+        self.tableView?.reloadData()
     }
 }
 

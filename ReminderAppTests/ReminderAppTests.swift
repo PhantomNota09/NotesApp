@@ -59,22 +59,6 @@ final class ReminderAppTests: XCTestCase {
         XCTAssertEqual(viewModel.note(at: 0)?.body, "Test Body")
     }
     
-    func testAddNote_TriggersCallback() throws {
-        // Given
-        let note = Note(title: "Test Note", body: "Test Body")
-        let expectation = expectation(description: "onNotesUpdated callback should be called")
-        
-        viewModel.onNotesUpdated = {
-            expectation.fulfill()
-        }
-        
-        // When
-        viewModel.addNote(note)
-        
-        // Then
-        waitForExpectations(timeout: 1.0)
-    }
-    
     // MARK: - Test updateNote
     
     func testUpdateNote_WithValidIndex_UpdatesNote() throws {
@@ -106,25 +90,6 @@ final class ReminderAppTests: XCTestCase {
         // Then
         XCTAssertEqual(viewModel.numberOfNotes(), 1, "Should still have only 1 note")
         XCTAssertEqual(viewModel.note(at: 0)?.title, "Original", "Original note should be unchanged")
-    }
-    
-    func testUpdateNote_TriggersCallback() throws {
-        // Given
-        let originalNote = Note(title: "Original", body: "Original Body")
-        viewModel.addNote(originalNote)
-        
-        let updatedNote = Note(title: "Updated", body: "Updated Body")
-        let expectation = expectation(description: "onNotesUpdated callback should be called")
-        
-        viewModel.onNotesUpdated = {
-            expectation.fulfill()
-        }
-        
-        // When
-        viewModel.updateNote(updatedNote, at: 0)
-        
-        // Then
-        waitForExpectations(timeout: 1.0)
     }
     
     // MARK: - Test saveNote

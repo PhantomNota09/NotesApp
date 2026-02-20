@@ -11,8 +11,6 @@ import Foundation
 
 /// Protocol defining the contract for a note view model
 protocol NoteViewModelProtocol: AnyObject {
-    /// Callback to notify the view when data changes
-    var onNotesUpdated: (() -> Void)? { get set }
     
     /// Returns the number of notes
     func numberOfNotes() -> Int
@@ -44,9 +42,6 @@ class NoteViewModel: NoteViewModelProtocol {
     
     private(set) var notes: [Note] = []
     
-    // Callback to notify the view when data changes
-    var onNotesUpdated: (() -> Void)?
-    
     // MARK: - Public Methods
     
     /// Returns the number of notes
@@ -63,14 +58,12 @@ class NoteViewModel: NoteViewModelProtocol {
     /// Adds a new note
     func addNote(_ note: Note) {
         notes.append(note)
-        onNotesUpdated?()
     }
     
     /// Updates an existing note at a specific index
     func updateNote(_ note: Note, at index: Int) {
         guard index >= 0 && index < notes.count else { return }
         notes[index] = note
-        onNotesUpdated?()
     }
     
     /// Saves a note (either adds new or updates existing)
@@ -86,12 +79,10 @@ class NoteViewModel: NoteViewModelProtocol {
     func deleteNote(at index: Int) {
         guard index >= 0 && index < notes.count else { return }
         notes.remove(at: index)
-        onNotesUpdated?()
     }
     
     /// Clears all notes
     func clearAllNotes() {
         notes.removeAll()
-        onNotesUpdated?()
     }
 }
