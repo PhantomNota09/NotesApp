@@ -10,8 +10,8 @@ import UIKit
 class NoteDetailVC: UIViewController {
     
     var noteIndex: Int?
-    var loadNote: ((Int) -> Note?)?  // Closure to load a note
-    var saveNote: ((Note, Int?) -> Void)?  // Closure to save a note
+    var loadNote: ((Int) -> Note?)?  // Closure to load a note which takes an int and returns note
+    var saveNote: ((Note, Int?) -> Void)?  // Closure to save a note which takes a note and int and returns nothing
     
     var titleTextField: UITextField?
     var bodyTextField: UITextField?
@@ -87,7 +87,7 @@ class NoteDetailVC: UIViewController {
     
     private func loadNoteData() {
         if let index = noteIndex, let loadNote = loadNote {
-            let note = loadNote(index)
+            let note = loadNote(index) // this calls the closure passing the index
             titleTextField?.text = note?.title
             bodyTextField?.text = note?.body
         }
