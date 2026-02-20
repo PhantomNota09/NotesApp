@@ -26,12 +26,6 @@ protocol NoteViewModelProtocol: AnyObject {
     
     /// Saves a note (either adds new or updates existing)
     func saveNote(_ note: Note, at index: Int?)
-    
-    /// Deletes a note at a specific index
-    func deleteNote(at index: Int)
-    
-    /// Clears all notes
-    func clearAllNotes()
 }
 
 // MARK: - NoteViewModel
@@ -73,16 +67,5 @@ class NoteViewModel: NoteViewModelProtocol {
         } else {
             addNote(note)
         }
-    }
-    
-    /// Deletes a note at a specific index
-    func deleteNote(at index: Int) {
-        guard index >= 0 && index < notes.count else { return }
-        notes.remove(at: index)
-    }
-    
-    /// Clears all notes
-    func clearAllNotes() {
-        notes.removeAll()
     }
 }
